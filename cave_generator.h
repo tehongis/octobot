@@ -21,7 +21,7 @@ public:
     ~CaveGenerator();
     
     // Generate cave using cellular automata
-    void generateCellularAutomata(float fillProbability = 0.45f, int iterations = 5);
+    void generateCellularAutomata(float fillProbability = 0.47f, int iterations = 5);
     
     // Generate cave using Perlin noise
     void generatePerlinNoise(float scale = 0.05f, float threshold = 0.4f);

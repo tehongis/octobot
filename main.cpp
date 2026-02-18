@@ -9,6 +9,9 @@
 #include <SDL2/SDL.h>
 #include <cmath>
 
+#define WIDTH 256
+#define HEIGHT 1024
+
 int main(int argc, char *argv[]) {
     (void)argc;
     (void)argv;
@@ -19,12 +22,12 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // Create and generate a 8192x8192 cave map
-    std::cout << "Generating 8192x8192 cave map..." << std::endl;
-    CaveGenerator caveGen(8192, 8192, 42);
+    // Create and generate a WIDTH*HEIGHT cave map
+    std::cout << "Generating WIDTH*HEIGHT cave map..." << std::endl;
+    CaveGenerator caveGen(WIDTH, HEIGHT, 42);
     
     // Choose generation method with parameters scaled for 8x larger map
-    std::cout << "Using random walk generation (scaled for 8192x8192)..." << std::endl;
+    std::cout << "Using random walk generation (scaled for WIDTH*HEIGHT)..." << std::endl;
     caveGen.generateRandomWalk(300, 3000);  // 300 walks, 3000 steps each (8x larger)
     caveGen.smoothMap(3);                     // Smooth 3 times
     caveGen.fillSmallCaverns(50);             // Fill caverns smaller than 50 tiles
@@ -32,8 +35,8 @@ int main(int argc, char *argv[]) {
     caveGen.ensureTopCenterEntrance();        // Ensure entrance at top center with passage down
 
     // Create large tilemap and load generated map
-    std::cout << "Creating 8192x8192 tilemap..." << std::endl;
-    Tilemap tilemap(engine_get_renderer(), "Spritesheet/roguelikeDungeon_transparent.png", 16, 16, 8192, 8192);
+    std::cout << "Creating WIDTH*HEIGHT tilemap..." << std::endl;
+    Tilemap tilemap(engine_get_renderer(), "Spritesheet/roguelikeDungeon_transparent.png", 16, 16, WIDTH, HEIGHT);
     
     auto flatMap = caveGen.getMapFlat();
     tilemap.loadMapFromArray(flatMap.data());
@@ -48,9 +51,9 @@ int main(int argc, char *argv[]) {
     }
 
     // Create a dynamic box body (player) at top center
-    // Map is 8192x8192 tiles, each 16px, so center is at (4096*16, top*16) = (65536, ~80)
+    // Map is WIDTH*HEIGHT tiles, each 16px, so center is at (4096*16, top*16) = (65536, ~80)
     PhysicsBody *player = physics_create_box_body(
-        world, 65536.0f, 80.0f, 12.0f, 16.0f,
+        world, (WIDTH * 16.0f)/2, 80.0f, 12.0f, 16.0f,
         1.0f, BODY_DYNAMIC, "player"
     );
 
@@ -79,8 +82,8 @@ int main(int argc, char *argv[]) {
     const float ROTATION_SPEED = 360.0f;  // Degrees per second (for keyboard)
     
     // Camera position (follows player, starting at top center)
-    float cameraX = 65536.0f - 400.0f;  // Center player horizontally on screen
-    float cameraY = 80.0f - 300.0f;     // Player at top of screen
+    float cameraX = (WIDTH * 16.0f)/2 - 400.0f;  // Center player horizontally on screen
+    float cameraY = (HEIGHT * 16.0f)/2 - 300.0f;     // Player at top of screen
 
     std::cout << "Starting game loop..." << std::endl;
     std::cout << "Joystick Controls: Left stick for 360-degree rotation, Right trigger for rocket throttle" << std::endl;
@@ -190,9 +193,9 @@ int main(int argc, char *argv[]) {
         float targetCameraX = playerPos.x - 400.0f;  // 400 = 800/2, center horizontally
         float targetCameraY = playerPos.y - 300.0f;  // 300 = 600/2, center vertically
         
-        // Clamp camera to map boundaries (8192x8192 tiles, 16px per tile)
-        float mapPixelWidth = 8192.0f * 16.0f;   // 131072 pixels
-        float mapPixelHeight = 8192.0f * 16.0f;  // 131072 pixels
+        // Clamp camera to map boundaries (WIDTH*HEIGHT tiles, 16px per tile)
+        float mapPixelWidth = WIDTH * 16.0f; 
+        float mapPixelHeight = HEIGHT * 16.0f;
         targetCameraX = std::max(0.0f, std::min(targetCameraX, mapPixelWidth - 800.0f));
         targetCameraY = std::max(0.0f, std::min(targetCameraY, mapPixelHeight - 600.0f));
         
